@@ -1,5 +1,5 @@
 # Skill react-rules
-### Copiar el siguiente Prompt para crear el skill una vez ejecutado el comando $skill-creator:
+### Copiar el siguiente Prompt para crear el skill:
 
 ```
 1. Skill name: ‘react-rules’ 
