@@ -1,4 +1,4 @@
-# Hook único para bloquear acceso a archivos sensibles (.env)
+# Hook único para bloquear acceso a archivos sensibles (users.json)
 
 Este script intercepta tanto `Read` como `Grep` usando un solo hook.
 
@@ -22,45 +22,22 @@ async function main() {
     chunks.push(chunk);
   }
 
-  const input = JSON.parse(Buffer.concat(chunks).toString());
+  const toolArgs = JSON.parse(Buffer.concat(chunks).toString());
 
-  const toolInput = input.tool_input || {};
+  // readPath is the path to the file that Claude is trying to read
+  const readPath =
+    toolArgs.tool_input?.file_path ||
+    toolArgs.tool_input?.path ||
+    "";
 
-  // Unificamos todos los posibles campos donde podría venir la ruta
-  const values = [
-    toolInput.file_path,
-    toolInput.path,
-    toolInput.glob,
-    toolInput.pattern
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  const blocked = [
-    ".env",
-    ".env.local",
-    ".env.development",
-    ".env.production",
-    "users.json"
-  ];
-
-  const isBlocked = blocked.some((file) =>
-    values.includes(file.toLowerCase())
-  );
-
-  if (isBlocked) {
-    console.error("🚫 Acceso bloqueado: archivos .env están protegidos");
+  // TODO: ensure Claude isn't trying to read the .env file
+  if (readPath.includes('users.json')) {
+    console.error("You cannot read the .env file");
     process.exit(2);
   }
-
-  process.exit(0);
 }
 
-main().catch((err) => {
-  console.error(err.message);
-  process.exit(2);
-});
+main();
 ```
 
 ---
@@ -91,37 +68,8 @@ main().catch((err) => {
 
 Este hook evita:
 
-- Leer `.env`
-- Buscar (`grep`) dentro de `.env`
-- Cualquier variante:
-  - `.env.local`
-  - `.env.production`
-  - `.env.*`
-
----
-
-## 4. Mejora opcional (más estricto 🔒)
-
-Si quieres bloquear cualquier archivo que CONTENGA `.env` en el path:
-
-```js
-const isBlocked = values.includes(".env");
-```
-
----
-
-## 5. Tip
-
-Puedes extender esto fácil:
-
-```js
-const blocked = [
-  ".env",
-  "secrets.json",
-  "private.key",
-  "id_rsa"
-];
-```
+- Leer `users.json`
+- Buscar (`grep`) dentro de `users.json`
 
 ---
 
