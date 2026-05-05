@@ -24,13 +24,6 @@ async function main() {
 
   const input = JSON.parse(Buffer.concat(chunks).toString());
 
-  // Block @ mentions in user prompt (UserPromptSubmit event)
-  const userPrompt = input.prompt ?? "";
-  if (userPrompt.includes("users.json")) {
-    console.error("You cannot reference the users.json file");
-    process.exit(2);
-  }
-
   // Block Read/Grep tool calls (PreToolUse event)
   const readPath =
     input.tool_input?.file_path ||
