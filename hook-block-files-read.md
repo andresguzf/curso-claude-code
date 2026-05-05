@@ -22,22 +22,29 @@ async function main() {
     chunks.push(chunk);
   }
 
-  const toolArgs = JSON.parse(Buffer.concat(chunks).toString());
+  const input = JSON.parse(Buffer.concat(chunks).toString());
 
-  // readPath is the path to the file that Claude is trying to read
+  // Block @ mentions in user prompt (UserPromptSubmit event)
+  const userPrompt = input.prompt ?? "";
+  if (userPrompt.includes("users.json")) {
+    console.error("You cannot reference the users.json file");
+    process.exit(2);
+  }
+
+  // Block Read/Grep tool calls (PreToolUse event)
   const readPath =
-    toolArgs.tool_input?.file_path ||
-    toolArgs.tool_input?.path ||
+    input.tool_input?.file_path ||
+    input.tool_input?.path ||
     "";
 
-  // ensure Claude isn't trying to read the .env file
-  if (readPath.includes('users.json')) {
-    console.error("You cannot read the .env file");
+  if (readPath.includes("users.json")) {
+    console.error("You cannot read the users.json file");
     process.exit(2);
   }
 }
 
 main();
+
 ```
 
 ---
